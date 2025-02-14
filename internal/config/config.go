@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	// The default MTU for a WireGuard interface
 	DefaultMTU int = 1420
 )
 
