@@ -1,9 +1,17 @@
+// Package config provides a WireGuard configuration parser and generator.
 package config
 
 import (
+	"bytes"
 	"net"
+	"strconv"
 
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
+	"gopkg.in/ini.v1"
+)
+
+const (
+	DefaultMTU string = "1420"
 )
 
 // Interface represents a WireGuard interface section configuration.
@@ -32,4 +40,60 @@ type Peer struct {
 type Config struct {
 	Interface Interface `ini:"Interface"`
 	Peers     []Peer    `ini:"Peer"`
+}
+
+func (c *Config) Generate() (string, error) {
+
+	wgcfg := ini.Empty()
+
+	// Add the interface section.
+	ifaceSec, err := wgcfg.NewSection("Interface")
+	if err != nil {
+		return "", err
+	}
+
+	// Add the key-value pairs to the interface section.
+	ifaceSec.NewKey("Address", c.Interface.Address.String())
+	ifaceSec.NewKey("PrivateKey", c.Interface.PrivateKey.String())
+	if len(c.Interface.DNS) > 0 {
+		ifaceSec.NewKey("DNS", c.Interface.DNS[0].String())
+		for _, dns := range c.Interface.DNS[1:] {
+			ifaceSec.NewKey("", dns.String())
+		}
+	}
+
+	if c.Interface.MTU > 0 {
+		ifaceSec.NewKey("MTU", strconv.Itoa(c.Interface.MTU))
+	} else {
+		ifaceSec.NewKey("MTU", DefaultMTU)
+	}
+
+	// Add the peer sections.
+	for _, peer := range c.Peers {
+		peerSec, err := wgcfg.NewSection("Peer")
+		if err != nil {
+			return "", err
+		}
+
+		// Add the key-value pairs to the peer section.
+		peerSec.NewKey("PublicKey", peer.PublicKey.String())
+		peerSec.NewKey("AllowedIPs", peer.AllowedIPs[0].String())
+		for _, allowedIP := range peer.AllowedIPs[1:] {
+			peerSec.NewKey("", allowedIP.String())
+		}
+
+		if peer.Endpoint != nil {
+			peerSec.NewKey("Endpoint", peer.Endpoint.String())
+		}
+
+	}
+
+	// Convert ini file to string
+	var outputBuffer bytes.Buffer
+	_, err = wgcfg.WriteTo(&outputBuffer)
+	if err != nil {
+		return "", err
+	}
+
+	return outputBuffer.String(), nil
 }
