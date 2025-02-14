@@ -42,14 +42,14 @@ type Config struct {
 	Peers     []Peer    `ini:"Peer"`
 }
 
-func (c *Config) Generate() (string, error) {
+func (c *Config) Generate() (*ini.File, error) {
 
 	wgcfg := ini.Empty()
 
 	// Add the interface section.
 	ifaceSec, err := wgcfg.NewSection("Interface")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// Add the key-value pairs to the interface section.
@@ -72,7 +72,7 @@ func (c *Config) Generate() (string, error) {
 	for _, peer := range c.Peers {
 		peerSec, err := wgcfg.NewSection("Peer")
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		// Add the key-value pairs to the peer section.
@@ -88,9 +88,18 @@ func (c *Config) Generate() (string, error) {
 
 	}
 
+	return wgcfg, nil
+}
+
+func (c *Config) String() (string, error) {
+	cfg, err := c.Generate()
+	if err != nil {
+		return "", err
+	}
+
 	// Convert ini file to string
 	var outputBuffer bytes.Buffer
-	_, err = wgcfg.WriteTo(&outputBuffer)
+	_, err = cfg.WriteTo(&outputBuffer)
 	if err != nil {
 		return "", err
 	}

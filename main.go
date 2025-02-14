@@ -46,11 +46,14 @@ func main() {
 		},
 	}
 
-	cfg, err := config.Generate()
+	// cfg, err := config.Generate()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	s, err := config.String()
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println(cfg)
+	fmt.Println(s)
 
 }
