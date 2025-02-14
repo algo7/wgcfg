@@ -11,35 +11,44 @@ import (
 )
 
 const (
-	DefaultMTU string = "1420"
+	DefaultMTU int = 1420
 )
 
-// Interface represents a WireGuard interface section configuration.
+// Interface represents a WireGuard interface section configuration
 type Interface struct {
-	// Address is the IP address and subnet of the WireGuard interface.
+	// Address is the IP address and subnet of the WireGuard interface
 	Address net.IPNet `ini:"Address"`
-	// PrivateKey is the private key of the WireGuard interface.
+	// PrivateKey is the private key of the WireGuard interface
 	PrivateKey wgtypes.Key `ini:"PrivateKey"`
-	// DNS is a list of DNS servers to use for the WireGuard interface.
+	// DNS is a list of DNS servers to use for the WireGuard interface
 	DNS []net.IP `ini:"DNS"`
-	// MTU is the MTU of the WireGuard interface.
+	// MTU is the MTU of the WireGuard interface
 	MTU int `ini:"MTU"`
 }
 
-// Peer represents a WireGuard peer section configuration.
+// Peer represents a WireGuard peer section configuration
 type Peer struct {
-	// Endpoint is the IP address and port of the peer.
+	// Endpoint is the IP address and port of the peer
 	Endpoint *net.UDPAddr `ini:"Endpoint"`
-	// AllowedIPs is a list of IP subnets that are allowed to be routed.
+	// AllowedIPs is a list of IP subnets that are allowed to be routed
 	AllowedIPs []net.IPNet `ini:"AllowedIPs"`
-	// PublicKey is the public key of the peer.
+	// PublicKey is the public key of the peer
 	PublicKey wgtypes.Key `ini:"PublicKey"`
 }
 
-// Config represents a WireGuard configuration.
+// Config represents a WireGuard configuration
 type Config struct {
 	Interface Interface `ini:"Interface"`
 	Peers     []Peer    `ini:"Peer"`
+}
+
+// New creates a new Config with the given Interface and Peers configurations
+func New(iface Interface, peers []Peer) *Config {
+
+	return &Config{
+		Interface: iface,
+		Peers:     peers,
+	}
 }
 
 // generate generates an ini.File from a Config
@@ -47,13 +56,13 @@ func (c *Config) generate() (*ini.File, error) {
 
 	wgcfg := ini.Empty()
 
-	// Add the interface section.
+	// Add the interface section
 	ifaceSec, err := wgcfg.NewSection("Interface")
 	if err != nil {
 		return nil, err
 	}
 
-	// Add the key-value pairs to the interface section.
+	// Add the key-value pairs to the interface section
 	ifaceSec.NewKey("Address", c.Interface.Address.String())
 	ifaceSec.NewKey("PrivateKey", c.Interface.PrivateKey.String())
 	if len(c.Interface.DNS) > 0 {
@@ -66,7 +75,7 @@ func (c *Config) generate() (*ini.File, error) {
 	if c.Interface.MTU > 0 {
 		ifaceSec.NewKey("MTU", strconv.Itoa(c.Interface.MTU))
 	} else {
-		ifaceSec.NewKey("MTU", DefaultMTU)
+		ifaceSec.NewKey("MTU", strconv.Itoa(DefaultMTU))
 	}
 
 	// Add the peer sections.
@@ -76,7 +85,7 @@ func (c *Config) generate() (*ini.File, error) {
 			return nil, err
 		}
 
-		// Add the key-value pairs to the peer section.
+		// Add the key-value pairs to the peer section
 		peerSec.NewKey("PublicKey", peer.PublicKey.String())
 		peerSec.NewKey("AllowedIPs", peer.AllowedIPs[0].String())
 		for _, allowedIP := range peer.AllowedIPs[1:] {
