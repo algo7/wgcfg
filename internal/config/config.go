@@ -42,7 +42,8 @@ type Config struct {
 	Peers     []Peer    `ini:"Peer"`
 }
 
-func (c *Config) Generate() (*ini.File, error) {
+// generate generates an ini.File from a Config
+func (c *Config) generate() (*ini.File, error) {
 
 	wgcfg := ini.Empty()
 
@@ -91,8 +92,9 @@ func (c *Config) Generate() (*ini.File, error) {
 	return wgcfg, nil
 }
 
+// String returns the string representation of a Config
 func (c *Config) String() (string, error) {
-	cfg, err := c.Generate()
+	cfg, err := c.generate()
 	if err != nil {
 		return "", err
 	}
@@ -107,8 +109,9 @@ func (c *Config) String() (string, error) {
 	return outputBuffer.String(), nil
 }
 
+// Save saves a Config to a file with the given name
 func (c *Config) Save(fileName string) error {
-	cfg, err := c.Generate()
+	cfg, err := c.generate()
 	if err != nil {
 		return err
 	}
