@@ -106,3 +106,13 @@ func (c *Config) String() (string, error) {
 
 	return outputBuffer.String(), nil
 }
+
+func (c *Config) Save(fileName string) error {
+	cfg, err := c.Generate()
+	if err != nil {
+		return err
+	}
+
+	return cfg.SaveTo(fileName)
+
+}
