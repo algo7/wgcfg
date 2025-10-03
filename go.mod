@@ -1,6 +1,6 @@
 module github.com/algo7/wgcfg
 
-go 1.23.1
+go 1.25.1
 
 require (
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20241231184526-a9ab2273dd10
